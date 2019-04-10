@@ -11,32 +11,6 @@ import dns.resolver
 from pyzabbix import ZabbixAPI
 
 
-def remove_non_primary(groupname=None, zapi=None):
-    """Removes all non primary interfaces.
-
-    :param groupname: name of the group to use
-    :type groupname: str
-    :param zapi: reference to the ZabbixAPI
-    :type zapi: ZabbixAPI
-    """
-    if zapi is None:
-        zapi = init()
-
-    if groupname is not None:
-        group_id = groupid(groupname, zapi=zapi)
-
-    else:
-        group_id = None
-
-    for host in zapi.host.get(groupids=group_id):
-        interfaces = zapi.hostinterface.get(hostids=host['hostid'])
-        delete = []
-        for interface in interfaces:
-            if interface['main'] == '0':
-                delete.append(interface['interfaceid'])
-
-        for interfaceid in delete:
-            zapi.hostinterface.delete(interfaceid)
 
 
 def resolve(hostname, qtype):
@@ -185,7 +159,7 @@ def hosts_in_group(groupname, zapi=None):
     if zapi is None:
         zapi = init()
 
-    return zapi.host.get(groupids=groupid(groupname))
+    return zapi.host.get(groupids=groupid(groupname, zapi=zapi))
 
 
 def main_interface(host, zapi=None):
@@ -237,3 +211,31 @@ def interface_exists(host, interface, zapi=None):
             break
 
     return exist
+
+
+def remove_non_primary_interfaces(groupname=None, zapi=None):
+    """Removes all non primary interfaces.
+
+    :param groupname: name of the group to use
+    :type groupname: str
+    :param zapi: reference to the ZabbixAPI
+    :type zapi: ZabbixAPI
+    """
+    if zapi is None:
+        zapi = init()
+
+    if groupname is not None:
+        group_id = groupid(groupname, zapi=zapi)
+
+    else:
+        group_id = None
+
+    for host in zapi.host.get(groupids=group_id):
+        interfaces = zapi.hostinterface.get(hostids=host['hostid'])
+        delete = []
+        for interface in interfaces:
+            if interface['main'] == '0':
+                delete.append(interface['interfaceid'])
+
+        for interfaceid in delete:
+            zapi.hostinterface.delete(interfaceid)
