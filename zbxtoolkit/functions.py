@@ -10,6 +10,13 @@ import yaml
 import dns.resolver
 from pyzabbix import ZabbixAPI
 
+try:
+    import pandas
+    PANDAS = True
+
+except ImportError:
+    PANDAS = False
+
 
 def resolve(hostname, qtype):
     """Resolver.
@@ -243,3 +250,78 @@ def remove_non_primary_interfaces(groupname=None, zapi=None):
 
         for interfaceid in delete:
             zapi.hostinterface.delete(interfaceid)
+
+
+def broken_lld(disabled=False, unsupported=False, zapi=None, usepandas=True):
+    """Enumerates Low Level Discovery items.
+    If `disabled` or  `unsupported` is True only items that are disabled,
+    or items that are unsupported are returned. If both are set to False items
+    that are either disabled or unsupported are returned.
+
+    If `usepandas` is True and pandas is available the data is returned as a
+    DataFrame.
+
+    :param disabled: return only disabled items
+    :type disabled: boolean
+    :param unsupported: return only unsupported items
+    :type unsupported: boolean
+    :param zapi: reference to the ZabbixAPI
+    :type zapi: ZabbixAPI
+    :param usepandas: if supported return data as a DataFrame
+    :type usepandas: boolean
+    """
+    if zapi is None:
+        zapi = init()
+
+    llds = zapi.discoveryrule.get()
+    data = []
+    for lld in llds:
+        name = lld['name']
+        status = lld['status']
+        state = lld['state']
+        error = lld['error']
+
+        accept = False
+        if disabled is False and unsupported is False:
+            if status == '1' or state == '1':
+                accept = True
+
+        if disabled is True and status == '1':
+            accept = True
+
+        if unsupported is True and state == '1':
+            accept = True
+
+        if accept is True:
+            host = zapi.host.get(hostids=lld['hostid'])
+            if host:
+                hostname = host[0]['name']
+
+            else:
+                hostname = 'Not found'
+            data.append(
+                [
+                    hostname,
+                    name,
+                    status,
+                    state,
+                    error,
+                ])
+
+    return_data = None
+    if data:
+        if PANDAS is True and usepandas is True:
+            df = pandas.DataFrame(
+                data,
+                columns=[
+                    'hostname',
+                    'item name',
+                    'status',
+                    'state',
+                    'error'])
+            return_data = df
+
+        else:
+            return_data = data
+
+    return return_data
