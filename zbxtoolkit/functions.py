@@ -207,7 +207,7 @@ def interface_exists(host, interface, zapi=None):
     if zapi is None:
         zapi = init()
 
-    check = ['useip', 'ip', 'dns']
+    check = ['main', 'useip', 'ip', 'dns']
     interfaces = zapi.hostinterface.get(hostids=host['hostid'])
     exist = False
     for compare in interfaces:
