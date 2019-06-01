@@ -186,8 +186,11 @@ def main_interface(host, zapi=None):
         zapi = init()
 
     for interface in zapi.hostinterface.get(hostids=host['hostid']):
-        if interface['main'] == 1:
+        if interface['main'] == '1':
             break
+
+    else:
+        interface = None
 
     return interface
 
@@ -214,8 +217,8 @@ def interface_exists(host, interface, zapi=None):
         set_A = []
         set_B = []
         for item in check:
-            set_A.append(str(interface[item]))
-            set_B.append(str(compare[item]))
+            set_A.append(f'{item}{interface[item]}')
+            set_B.append(f'{item}{compare[item]}')
 
         if set(set_A) == set(set_B):
             exist = True
