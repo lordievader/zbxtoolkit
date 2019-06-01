@@ -11,19 +11,23 @@ import dns.resolver
 from pyzabbix import ZabbixAPI
 
 
-
-
 def resolve(hostname, qtype):
     """Resolver.
     """
     response = dns.resolver.query(hostname, qtype)
     answer = None
     if response:
-        try:
-            answer = response.response.answer[0].items[0].address
+        for _answer in response.response.answer:
+            for item in _answer.items:
+                try:
+                    answer = item.address
+                    break
 
-        except:
-            pass
+                except AttributeError:
+                    pass
+
+            if answer is not None:
+                break
 
     return answer
 
