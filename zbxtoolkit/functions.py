@@ -118,11 +118,8 @@ def template(templatename, zapi=None):
     if zapi is None:
         zapi = init()
 
-    for template in zapi.template.get():
-        if templatename in  template['name']:
-            break
-
-    else:
+    template = zapi.template.get(filter={'name': templatename)
+    if not template:
         raise RuntimeError(f'Template {templatename} not found.')
 
     return template
