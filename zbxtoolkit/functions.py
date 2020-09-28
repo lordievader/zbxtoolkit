@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Author:      Olivier van der Toorn <o.i.vandertoorn@utwente.nl>
+"""Author:      Olivier van der Toorn <oliviervdtoorn@gmail.com>
 Description:    Zabbix API functions.
 """
 import logging
@@ -16,6 +16,24 @@ try:
 
 except ImportError:
     PANDAS = False
+
+
+def read_config(path='zapi.yml'):
+    """Read a zabbix-matrix config file.
+
+    :param config_file: config file to read
+    :type config_file: str
+    :param section: section to read from the config file
+    :type section: str
+    :return: config dictionary
+    """
+    if os.path.isfile(path) is False:
+        logging.error('config file "%s" not found', path)
+
+    with open(path, 'r') as config_file:
+        data = yaml.load(config_file, Loader=yaml.Loader)
+
+    return data
 
 
 def resolve(hostname, qtype):
@@ -38,23 +56,6 @@ def resolve(hostname, qtype):
 
     return answer
 
-def read_config():
-    """Read a zabbix-matrix config file.
-
-    :param config_file: config file to read
-    :type config_file: str
-    :param section: section to read from the config file
-    :type section: str
-    :return: config dictionary
-    """
-    path = 'zapi.yml'
-    if os.path.isfile(path) is False:
-        logging.error('config file "%s" not found', path)
-
-    with open(path, 'r') as config_file:
-        data = yaml.load(config_file, Loader=yaml.Loader)
-
-    return data
 
 
 def init(config=None):
@@ -106,35 +107,7 @@ def groupid(groupname, zapi=None):
     """
     return group(groupname, zapi)['groupid']
 
-def template(templatename, zapi=None):
-    """Gathers a template with a given name.
 
-    :param templatename: name of the template (fuzzy match)
-    :type templatename: str
-    :param zapi: reference to the ZabbixAPI
-    :type zapi: ZabbixAPI
-    :returns: the template (dict)
-    """
-    if zapi is None:
-        zapi = init()
-
-    template = zapi.template.get(filter={'name': templatename)
-    if not template:
-        raise RuntimeError(f'Template {templatename} not found.')
-
-    return template
-
-
-def templateid(templatename, zapi=None):
-    """Gathers the template ID with a give name.
-
-    :param templatename: name of the template
-    :type templatename: str
-    :param zapi: reference to the ZabbixAPI
-    :type zapi: ZabbixAPI
-    :returns: the templateid (str)
-    """
-    return template(templatename, zapi)['templateid']
 
 
 def group_member(host, groupname, zapi=None):

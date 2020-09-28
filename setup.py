@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='zbxtoolkit',
-    version='0.2.1',
+    version='0.3.0',
     description='Functions for managing Zabbix via the API.',
     author='Olivier van der Toorn',
     author_email='oliviervdtoorn@gmail.com',
